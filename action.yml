@@ -1,0 +1,25 @@
+name: 'Deploy theme to Shopify Store'
+branding:
+  icon: shopping-bag
+  colour: green
+description: 'Deploys theme to a shopify store'
+inputs:
+  app_id:
+    description: 'Shopify private app ID'
+    required: true
+  app_password:
+    description: 'Shopify private app password'
+    required: true
+  store:
+    description: '<domain>.myshopify.com URL'
+    required: true
+  theme_root:
+    description: 'The root folder for the theme assets that will be uploaded'
+    required: false
+    default: '.'
+outputs:
+  preview_url:
+    description: "The preview url for the deployed theme"
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
