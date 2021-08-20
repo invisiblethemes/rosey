@@ -11,7 +11,6 @@
 #
 # Here, we're translating the GitHub action input arguments into environment variables
 # for this scrip to use.
-[[ -n "$INPUT_APP_ID" ]]            && export SHOP_APP_ID="$INPUT_APP_ID"
 [[ -n "$INPUT_APP_PASSWORD" ]]      && export SHOP_APP_PASSWORD="$INPUT_APP_PASSWORD"
 [[ -n "$INPUT_STORE" ]]             && export SHOP_STORE="$INPUT_STORE"
 [[ -n "$INPUT_THEME_ROOT" ]]        && export THEME_ROOT="$INPUT_THEME_ROOT"
@@ -76,14 +75,13 @@ export SHOPIFY_PASSWORD="$SHOP_APP_PASSWORD"
 
 shopify login
 
-username="$SHOP_APP_ID"
-password="$SHOP_APP_PASSWORD"
-host="https://$SHOP_STORE"
 theme_root="${THEME_ROOT:-.}"
 
 step "Creating development theme"
 theme_push_log="$(mktemp)"
 shopify theme push --development --json $theme_root > "$theme_push_log" && cat "$theme_push_log"
 preview_url="$(cat "$theme_push_log" | tail -n 1 | jq -r '.theme.preview_url')&_fd=0"
+editor_url="$(cat "$theme_push_log" | tail -n 1 | jq -r '.theme.editor_url')"
 
 echo "::set-output name=preview_url::$preview_url"
+echo "::set-output name=editor_url::$editor_url"

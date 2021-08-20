@@ -4,9 +4,6 @@ branding:
   colour: green
 description: 'Deploys theme to a shopify store'
 inputs:
-  app_id:
-    description: 'Shopify private app ID'
-    required: true
   app_password:
     description: 'Shopify private app password'
     required: true
