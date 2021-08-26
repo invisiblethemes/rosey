@@ -14,6 +14,7 @@
 [[ -n "$INPUT_APP_PASSWORD" ]]      && export SHOP_APP_PASSWORD="$INPUT_APP_PASSWORD"
 [[ -n "$INPUT_STORE" ]]             && export SHOP_STORE="$INPUT_STORE"
 [[ -n "$INPUT_THEME_ROOT" ]]        && export THEME_ROOT="$INPUT_THEME_ROOT"
+[[ -n "$INPUT_THEME_ID" ]]        && export THEME_ID="$INPUT_THEME_ID"
 
 # Add global node bin to PATH (from the Dockerfile)
 export PATH="$PATH:$npm_config_prefix/bin"
@@ -47,10 +48,6 @@ cleanup() {
     shopify logout
   fi
 
-  if [[ -f "lighthouserc.yml" ]]; then
-    rm "lighthouserc.yml"
-  fi
-
   if [[ -f "setPreviewCookies.js" ]]; then
     rm "setPreviewCookies.js"
   fi
@@ -76,12 +73,19 @@ export SHOPIFY_PASSWORD="$SHOP_APP_PASSWORD"
 shopify login
 
 theme_root="${THEME_ROOT:-.}"
+current_theme_id="--development"
+if [[ -n "${THEME_ID+x}" ]]; then
+  current_theme_id="--themeid=${THEME_ID}"
+fi
+
 
 step "Creating development theme"
 theme_push_log="$(mktemp)"
-shopify theme push --development --json $theme_root > "$theme_push_log" && cat "$theme_push_log"
+shopify theme push --json $current_theme_id $theme_root > "$theme_push_log" && cat "$theme_push_log"
 preview_url="$(cat "$theme_push_log" | tail -n 1 | jq -r '.theme.preview_url')&_fd=0"
 editor_url="$(cat "$theme_push_log" | tail -n 1 | jq -r '.theme.editor_url')"
+theme_id="$(cat "$theme_push_log" | tail -n 1 | jq -r '.theme.id')"
 
+echo "::set-output name=theme_id::$theme_id"
 echo "::set-output name=preview_url::$preview_url"
 echo "::set-output name=editor_url::$editor_url"

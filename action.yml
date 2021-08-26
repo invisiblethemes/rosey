@@ -14,7 +14,14 @@ inputs:
     description: 'The root folder for the theme assets that will be uploaded'
     required: false
     default: '.'
+  theme_id:
+    description: 'The theme ID to replace'
+    required: false
 outputs:
+  theme_id:
+    description: "The theme ID correpsonding to this branch"
+  editor_url:
+    description: "The editor url for the deployed theme"
   preview_url:
     description: "The preview url for the deployed theme"
 runs:
