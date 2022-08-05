@@ -85,3 +85,5 @@ editor_url="$(cat "$theme_push_log" | tail -n 1 | jq -r '.theme.editor_url')"
 
 echo "::set-output name=preview_url::$preview_url"
 echo "::set-output name=editor_url::$editor_url"
+
+shopify logout
