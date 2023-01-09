@@ -17,6 +17,10 @@ inputs:
 outputs:
   preview_url:
     description: "The preview url for the deployed theme"
+  editor_url:
+    description: "The editor url for the deployed theme"
+  theme_id:
+    description: "The id for the deployed theme"
 runs:
   using: 'docker'
   image: 'Dockerfile'

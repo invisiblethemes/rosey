@@ -82,6 +82,8 @@ theme_push_log="$(mktemp)"
 shopify theme push --development --json $theme_root > "$theme_push_log" && cat "$theme_push_log"
 preview_url="$(cat "$theme_push_log" | tail -n 1 | jq -r '.theme.preview_url')"
 editor_url="$(cat "$theme_push_log" | tail -n 1 | jq -r '.theme.editor_url')"
+preview_id="$(cat "$theme_push_log" | tail -n 1 | jq -r '.theme.id')"
 
 echo "preview_url=$preview_url" >> $GITHUB_OUTPUT
 echo "editor_url=$editor_url" >> $GITHUB_OUTPUT
+echo "theme_id=$preview_id" >> $GITHUB_OUTPUT
