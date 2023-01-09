@@ -83,5 +83,5 @@ shopify theme push --development --json $theme_root > "$theme_push_log" && cat "
 preview_url="$(cat "$theme_push_log" | tail -n 1 | jq -r '.theme.preview_url')"
 editor_url="$(cat "$theme_push_log" | tail -n 1 | jq -r '.theme.editor_url')"
 
-echo "::set-output name=preview_url::$preview_url"
-echo "::set-output name=editor_url::$editor_url"
+echo "preview_url=$preview_url" >> $GITHUB_OUTPUT
+echo "editor_url=$editor_url" >> $GITHUB_OUTPUT
