@@ -44,6 +44,7 @@ is_installed() {
 cleanup() {
   if [[ -n "${theme+x}" ]]; then
     step "Disposing development theme"
+    shopify shopify theme delete -f -d
     shopify logout
   fi
 
