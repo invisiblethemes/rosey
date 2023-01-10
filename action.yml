@@ -24,4 +24,4 @@ outputs:
 runs:
   using: 'docker'
   image: 'Dockerfile'
-  post: 'clean.sh'
+  post-entrypoint: 'cleanup.sh'
