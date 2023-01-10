@@ -1,3 +1,5 @@
 #!/usr/bin/env bash
 
-echo "CLEANUP TIME!"
+if [ $CLEANUP_THEME == 'true' ]; then
+  shopify shopify theme delete -f -d
+fi
