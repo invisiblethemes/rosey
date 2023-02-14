@@ -1,4 +1,4 @@
-PROJECT_NAME := anark6/gha-shopify-cli
+PROJECT_NAME := invisiblethemes/gha-shopify-cli
 VERSION := 1.0.0
 GITSHA:= $(shell echo $$(git describe --always --long --dirty))
 
