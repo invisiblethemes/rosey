@@ -71,10 +71,9 @@ YAML
 
 # Secret environment variable that turns shopify CLI into CI mode that accepts environment credentials
 export CI=1
-export SHOPIFY_SHOP="$SHOP_STORE"
-export SHOPIFY_PASSWORD="$SHOP_APP_PASSWORD"
-
-shopify login
+export SHOPIFY_CLI_TTY=0
+export SHOPIFY_FLAG_STORE="$SHOP_STORE"
+export SHOPIFY_CLI_THEME_TOKEN="$SHOP_APP_PASSWORD"
 
 theme_root="${THEME_ROOT:-.}"
 
