@@ -1,3 +1,11 @@
 FROM node:16-bullseye
+
 RUN apt-get update \
-  && npm install -g @shopify/cli @shopify/theme
+    && apt-get -y install sudo jq rbenv \
+    && mkdir -p "$(rbenv root)"/plugins \
+    && git clone https://github.com/rbenv/ruby-build.git "$(rbenv root)"/plugins/ruby-build \
+    && git -C "$(rbenv root)"/plugins/ruby-build pull \
+    && rbenv install 2.7.1 \
+    && rbenv global 2.7.1 \
+    && gem install shopify-cli -N \
+    && npm install -g @shopify/cli @shopify/theme
