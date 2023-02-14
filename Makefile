@@ -1,5 +1,5 @@
 PROJECT_NAME := invisiblethemes/gha-shopify-cli
-VERSION := 1.0.0
+VERSION := 1.0.1
 GITSHA:= $(shell echo $$(git describe --always --long --dirty))
 
 export GITSHA
