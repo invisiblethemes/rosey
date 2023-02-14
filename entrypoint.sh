@@ -80,7 +80,7 @@ theme_root="${THEME_ROOT:-.}"
 
 step "Creating development theme"
 theme_push_log="$(mktemp)"
-shopify theme push --development --json $theme_root > "$theme_push_log" && cat "$theme_push_log"
+shopify theme push --development --path=$theme_root > "$theme_push_log" && cat "$theme_push_log"
 preview_url="$(cat "$theme_push_log" | tail -n 1 | jq -r '.theme.preview_url')"
 editor_url="$(cat "$theme_push_log" | tail -n 1 | jq -r '.theme.editor_url')"
 preview_id="$(cat "$theme_push_log" | tail -n 1 | jq -r '.theme.id')"
