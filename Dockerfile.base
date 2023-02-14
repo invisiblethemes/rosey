@@ -1,4 +1,4 @@
-FROM node:16-bullseye
+FROM node:14-buster
 
 RUN apt-get update \
     && apt-get -y install sudo jq rbenv \
