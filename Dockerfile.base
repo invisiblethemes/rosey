@@ -1,5 +1,7 @@
 FROM node:14-buster
 
+ENV PATH="/root/.rbenv/shims:${PATH}"
+
 RUN apt-get update \
     && apt-get -y install sudo jq rbenv \
     && mkdir -p "$(rbenv root)"/plugins \
