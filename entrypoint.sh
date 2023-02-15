@@ -14,6 +14,7 @@
 [[ -n "$INPUT_THEME_TOKEN" ]]      && export SHOP_THEME_TOKEN="$INPUT_THEME_TOKEN"
 [[ -n "$INPUT_STORE" ]]            && export SHOP_STORE="$INPUT_STORE"
 [[ -n "$INPUT_THEME_ROOT" ]]       && export THEME_ROOT="$INPUT_THEME_ROOT"
+[[ -n "$INPUT_THEME_COMMAND" ]]     && export THEME_COMMAND="$INPUT_THEME_COMMAND"
 
 # Add global node bin to PATH (from the Dockerfile)
 export PATH="$PATH:$npm_config_prefix/bin"
@@ -79,7 +80,17 @@ theme_root="${THEME_ROOT:-.}"
 
 step "Creating development theme"
 theme_push_log="$(mktemp)"
-shopify theme push --development --path=$theme_root > "$theme_push_log" && cat "$theme_push_log"
+
+if [[ -n "${THEME_COMMAND}" ]]; then
+  step "Running custom theme command..."
+  shopify theme ${THEME_COMMAND} --json $theme_root > "$theme_push_log" && cat "$theme_push_log"
+else
+  step "Running shopify theme push..."
+  shopify theme push --development --json $theme_root > "$theme_push_log" && cat "$theme_push_log"
+fi
+
+echo $theme_push_log
+
 preview_url="$(cat "$theme_push_log" | tail -n 1 | jq -r '.theme.preview_url')"
 editor_url="$(cat "$theme_push_log" | tail -n 1 | jq -r '.theme.editor_url')"
 preview_id="$(cat "$theme_push_log" | tail -n 1 | jq -r '.theme.id')"
