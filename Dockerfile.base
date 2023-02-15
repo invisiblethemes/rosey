@@ -2,6 +2,8 @@ FROM node:14-buster
 
 ENV PATH="/root/.rbenv/shims:${PATH}"
 
+USER root
+
 RUN apt-get update \
     && apt-get -y install sudo jq rbenv \
     && mkdir -p "$(rbenv root)"/plugins \
@@ -11,4 +13,4 @@ RUN apt-get update \
     && rbenv global 2.7.1 \
     && gem install shopify-cli -N
 
-  RUN npm install -g @shopify/cli @shopify/theme
+RUN npm install -g @shopify/cli @shopify/theme
