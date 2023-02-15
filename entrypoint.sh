@@ -11,7 +11,7 @@
 #
 # Here, we're translating the GitHub action input arguments into environment variables
 # for this scrip to use.
-[[ -n "$INPUT_APP_PASSWORD" ]]      && export SHOP_APP_PASSWORD="$INPUT_APP_PASSWORD"
+[[ -n "$INPUT_THEME_TOKEN" ]]      && export SHOP_THEME_TOKEN="$INPUT_THEME_TOKEN"
 [[ -n "$INPUT_STORE" ]]             && export SHOP_STORE="$INPUT_STORE"
 [[ -n "$INPUT_THEME_ROOT" ]]        && export THEME_ROOT="$INPUT_THEME_ROOT"
 
@@ -73,7 +73,7 @@ YAML
 export CI=1
 export SHOPIFY_CLI_TTY=0
 export SHOPIFY_FLAG_STORE="$SHOP_STORE"
-export SHOPIFY_CLI_THEME_TOKEN="$SHOP_APP_PASSWORD"
+export SHOPIFY_CLI_THEME_TOKEN="$SHOP_THEME_TOKEN"
 
 theme_root="${THEME_ROOT:-.}"
 
