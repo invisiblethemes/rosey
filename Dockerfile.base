@@ -2,13 +2,17 @@ FROM node:16-buster
 
 ENV PATH="/root/.rbenv/shims:${PATH}"
 
+# Install ruby
 RUN apt-get update \
     && apt-get -y install sudo jq rbenv \
     && mkdir -p "$(rbenv root)"/plugins \
     && git clone https://github.com/rbenv/ruby-build.git "$(rbenv root)"/plugins/ruby-build \
     && git -C "$(rbenv root)"/plugins/ruby-build pull \
     && rbenv install 2.7.5 \
-    && rbenv global 2.7.5 \
-    && gem install shopify-cli -N
+    && rbenv global 2.7.5
 
+# Install ruby deps
+RUN gem install bundler && gem install shopify-cli -N
+
+# Install node deps
 RUN sudo npm install -g @shopify/cli @shopify/theme
