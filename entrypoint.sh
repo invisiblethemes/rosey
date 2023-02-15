@@ -12,8 +12,8 @@
 # Here, we're translating the GitHub action input arguments into environment variables
 # for this scrip to use.
 [[ -n "$INPUT_THEME_TOKEN" ]]      && export SHOP_THEME_TOKEN="$INPUT_THEME_TOKEN"
-[[ -n "$INPUT_STORE" ]]             && export SHOP_STORE="$INPUT_STORE"
-[[ -n "$INPUT_THEME_ROOT" ]]        && export THEME_ROOT="$INPUT_THEME_ROOT"
+[[ -n "$INPUT_STORE" ]]            && export SHOP_STORE="$INPUT_STORE"
+[[ -n "$INPUT_THEME_ROOT" ]]       && export THEME_ROOT="$INPUT_THEME_ROOT"
 
 # Add global node bin to PATH (from the Dockerfile)
 export PATH="$PATH:$npm_config_prefix/bin"
