@@ -82,11 +82,11 @@ step "Creating development theme"
 theme_push_log="$(mktemp)"
 
 if [[ -n "${THEME_COMMAND}" ]]; then
-  step "Running custom theme command..."
-  shopify theme ${THEME_COMMAND} --json $theme_root > "$theme_push_log" && cat "$theme_push_log"
+  step "Running custom theme command 'shopify ${THEME_COMMAND}'"
+  shopify theme ${THEME_COMMAND} --path=$theme_root > "$theme_push_log" && cat "$theme_push_log"
 else
-  step "Running shopify theme push..."
-  shopify theme push --development --json $theme_root > "$theme_push_log" && cat "$theme_push_log"
+  step "Running 'shopify theme push'"
+  shopify theme push --development --path=$theme_root > "$theme_push_log" && cat "$theme_push_log"
 fi
 
 echo $theme_push_log
