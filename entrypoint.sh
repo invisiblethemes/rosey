@@ -93,11 +93,11 @@ echo $theme_push_log
 
 preview_url="$(cat "$theme_push_log" | awk '/View your theme:/{getline; print}' | sed 's/^ *//g')"
 editor_url="$(cat "$theme_push_log" | awk '/Customize this theme in the Theme Editor:/{getline; print}' | sed 's/^ *//g')"
-preview_id="$("$editor_url" | sed -n 's/.*themes\/\([0-9]\+\)\/editor.*/\1/p')"
+preview_id="$(echo "$editor_url" | sed -n 's/.*themes\/\([0-9]*\)\/editor.*/\1/p')"
 
-echo "preview_url=$preview_url"
-echo "editor_url=$editor_url"
-echo "theme_id=$preview_id"
+echo "Preview URL: $preview_url"
+echo "Editor URL: $editor_url"
+echo "Theme ID: $preview_id"
 
 echo "preview_url=$preview_url" >> $GITHUB_OUTPUT
 echo "editor_url=$editor_url" >> $GITHUB_OUTPUT
