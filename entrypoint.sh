@@ -89,16 +89,18 @@ else
   shopify theme push --development --path=$theme_root > "$theme_push_log" && cat "$theme_push_log"
 fi
 
-echo "Output: $(cat "$theme_push_log")"
+echo "Exit: $?"
 
-preview_url="$(cat "$theme_push_log" | awk '/View your theme:/{getline; print}' | sed 's/^ *//g')"
-editor_url="$(cat "$theme_push_log" | awk '/Customize this theme in the Theme Editor:/{getline; print}' | sed 's/^ *//g')"
-preview_id="$(echo "$editor_url" | sed -n 's/.*themes\/\([0-9]*\)\/editor.*/\1/p')"
+# echo "Output: $(cat "$theme_push_log")"
 
-echo "Preview URL: $preview_url"
-echo "Editor URL: $editor_url"
-echo "Theme ID: $preview_id"
+# preview_url="$(cat "$theme_push_log" | awk '/View your theme:/{getline; print}' | sed 's/^ *//g')"
+# editor_url="$(cat "$theme_push_log" | awk '/Customize this theme in the Theme Editor:/{getline; print}' | sed 's/^ *//g')"
+# preview_id="$(echo "$editor_url" | sed -n 's/.*themes\/\([0-9]*\)\/editor.*/\1/p')"
 
-echo "preview_url=$preview_url" >> $GITHUB_OUTPUT
-echo "editor_url=$editor_url" >> $GITHUB_OUTPUT
-echo "theme_id=$preview_id" >> $GITHUB_OUTPUT
+# echo "Preview URL: $preview_url"
+# echo "Editor URL: $editor_url"
+# echo "Theme ID: $preview_id"
+
+# echo "preview_url=$preview_url" >> $GITHUB_OUTPUT
+# echo "editor_url=$editor_url" >> $GITHUB_OUTPUT
+# echo "theme_id=$preview_id" >> $GITHUB_OUTPUT
