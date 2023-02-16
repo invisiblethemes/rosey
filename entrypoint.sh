@@ -91,9 +91,9 @@ fi
 
 echo $theme_push_log
 
-preview_url="$(cat "$theme_push_log" | awk '/View your theme:/{getline; print}' "$file" | sed 's/^ *//g' | grep -Eo '(http|https)://[^/"]+')"
-editor_url="$(cat "$theme_push_log" | awk '/Customize this theme in the Theme Editor:/{getline; print}' "$file" | sed 's/^ *//g' | grep -Eo '(http|https)://[^/"]+')"
-preview_id="$(cat "$theme_push_log" | sed -n 's/.*themes\/\([0-9]\+\)\/editor.*/\1/p')"
+preview_url="$(cat "$theme_push_log" | awk '/View your theme:/{getline; print}' | sed 's/^ *//g')"
+editor_url="$(cat "$theme_push_log" | awk '/Customize this theme in the Theme Editor:/{getline; print}' | sed 's/^ *//g')"
+preview_id="$("$editor_url" | sed -n 's/.*themes\/\([0-9]\+\)\/editor.*/\1/p')"
 
 echo "preview_url=$preview_url"
 echo "editor_url=$editor_url"
