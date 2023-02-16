@@ -83,10 +83,10 @@ theme_push_log="$(mktemp)"
 
 if [[ -n "${THEME_COMMAND}" ]]; then
   step "Running custom theme command 'shopify ${THEME_COMMAND}'"
-  shopify theme ${THEME_COMMAND} --path=$theme_root > "$theme_push_log" && cat "$theme_push_log"
+  shopify theme ${THEME_COMMAND} --path=$theme_root > "$theme_push_log"
 else
   step "Running 'shopify theme push'"
-  shopify theme push --development --path=$theme_root > "$theme_push_log" && cat "$theme_push_log"
+  shopify theme push --development --path=$theme_root > "$theme_push_log"
 fi
 
 if [ $? -eq 0 ]; then
@@ -102,6 +102,6 @@ if [ $? -eq 0 ]; then
   echo "editor_url=$editor_url" >> $GITHUB_OUTPUT
   echo "theme_id=$preview_id" >> $GITHUB_OUTPUT
 else
-  echo "$(cat "$theme_push_log")" >&2
+  echo "Error pushing theme!" >&2
   exit 1
 fi
