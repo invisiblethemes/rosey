@@ -4,8 +4,8 @@ branding:
   colour: green
 description: 'Deploys theme to a shopify store'
 inputs:
-  app_password:
-    description: 'Shopify private app password'
+  theme_token:
+    description: 'Shopify theme access token'
     required: true
   store:
     description: '<domain>.myshopify.com URL'
