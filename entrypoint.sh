@@ -89,7 +89,7 @@ else
   shopify theme push --development --path=$theme_root > "$theme_push_log" && cat "$theme_push_log"
 fi
 
-echo $theme_push_log
+echo "Output: $(cat "$theme_push_log")"
 
 preview_url="$(cat "$theme_push_log" | awk '/View your theme:/{getline; print}' | sed 's/^ *//g')"
 editor_url="$(cat "$theme_push_log" | awk '/Customize this theme in the Theme Editor:/{getline; print}' | sed 's/^ *//g')"
