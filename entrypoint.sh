@@ -91,12 +91,10 @@ fi
 
 echo $theme_push_log
 
-preview_url="$(cat "$theme_push_log" | awk '/View your theme:/ { getline; print }'"
-editor_url="$(cat "$theme_push_log" | awk '/Customize this theme in the Theme Editor:/ { getline; print }'"
-
-# TODO
-# preview_id=".."
+preview_url="$(cat "$theme_push_log" | awk '/View your theme:/ { getline; print }')"
+editor_url="$(cat "$theme_push_log" | awk '/Customize this theme in the Theme Editor:/ { getline; print }')"
+preview_id="$(cat "$theme_push_log" | sed -n 's/.*themes\/\([0-9]\+\)\/editor.*/\1/p')"
 
 echo "preview_url=$preview_url" >> $GITHUB_OUTPUT
 echo "editor_url=$editor_url" >> $GITHUB_OUTPUT
-# echo "theme_id=$preview_id" >> $GITHUB_OUTPUT
+echo "theme_id=$preview_id" >> $GITHUB_OUTPUT
