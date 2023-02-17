@@ -81,7 +81,8 @@ theme_command="${THEME_COMMAND:-"push --development"}"
 step "Creating development theme"
 theme_push_log="$(mktemp)"
 
-step "Running theme command 'shopify theme $theme_command'"
+step "Running theme command 'shopify theme $theme_command --path=$theme_root'"
+
 shopify theme "$theme_command" --path=$theme_root > "$theme_push_log"
 
 cat "$theme_push_log"
