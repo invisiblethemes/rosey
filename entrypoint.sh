@@ -77,17 +77,13 @@ export SHOPIFY_FLAG_STORE="$SHOP_STORE"
 export SHOPIFY_CLI_THEME_TOKEN="$SHOP_THEME_TOKEN"
 
 theme_root="${THEME_ROOT:-.}"
+theme_command="${THEME_COMMAND:-"push --development"}"
 
 step "Creating development theme"
 theme_push_log="$(mktemp)"
 
-if [[ -n "${THEME_COMMAND}" ]]; then
-  step "Running custom theme command 'shopify ${THEME_COMMAND}'"
-  shopify theme ${THEME_COMMAND} --path=$theme_root > "$theme_push_log"
-else
-  step "Running 'shopify theme push'"
-  shopify theme push --development --path=$theme_root > "$theme_push_log"
-fi
+step "Running theme command 'shopify theme $theme_command'"
+shopify theme "$theme_command" --path=$theme_root > "$theme_push_log"
 
 if [ $? -eq 0 ]; then
   preview_url="$(cat "$theme_push_log" | awk '/View your theme:/{getline; print}' | sed 's/^ *//g')"
