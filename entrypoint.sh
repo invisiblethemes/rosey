@@ -90,7 +90,14 @@ fi
 # Extract JSON from shopify CLI output
 json_output="$(grep -oE '{.*}' $theme_push_log)"
 
+echo "cat \$theme_push_log"
+cat $theme_push_log
+
+echo "printf \"\$json_output\""
 printf "$json_output"
+
+echo "echo \"\$json_output\""
+echo "$json_output"
 
 preview_url="$(echo "$json_output" | tail -n 1 | jq -r '.theme.preview_url')"
 
