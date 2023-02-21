@@ -4,8 +4,8 @@ branding:
   colour: green
 description: 'Deploys theme to a shopify store'
 inputs:
-  app_password:
-    description: 'Shopify private app password'
+  theme_token:
+    description: 'Shopify theme access token'
     required: true
   store:
     description: '<domain>.myshopify.com URL'
@@ -14,6 +14,9 @@ inputs:
     description: 'The root folder for the theme assets that will be uploaded'
     required: false
     default: '.'
+  theme_command:
+    description: 'Optional command to run instead of `push --development`'
+    required: false
   cleanup_theme:
     description: 'Whether or not to delete the development theme in a post-action script'
     required: false

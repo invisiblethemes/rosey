@@ -11,9 +11,10 @@
 #
 # Here, we're translating the GitHub action input arguments into environment variables
 # for this scrip to use.
-[[ -n "$INPUT_APP_PASSWORD" ]]      && export SHOP_APP_PASSWORD="$INPUT_APP_PASSWORD"
+[[ -n "$INPUT_THEME_TOKEN" ]]       && export SHOP_THEME_TOKEN="$INPUT_THEME_TOKEN"
 [[ -n "$INPUT_STORE" ]]             && export SHOP_STORE="$INPUT_STORE"
 [[ -n "$INPUT_THEME_ROOT" ]]        && export THEME_ROOT="$INPUT_THEME_ROOT"
+[[ -n "$INPUT_THEME_COMMAND" ]]     && export THEME_COMMAND="$INPUT_THEME_COMMAND"
 
 # Add global node bin to PATH (from the Dockerfile)
 export PATH="$PATH:$npm_config_prefix/bin"
@@ -48,18 +49,15 @@ cleanup() {
     shopify logout
   fi
 
-  if [[ -f "lighthouserc.yml" ]]; then
-    rm "lighthouserc.yml"
-  fi
-
-  if [[ -f "setPreviewCookies.js" ]]; then
-    rm "setPreviewCookies.js"
-  fi
-
   return $1
 }
 
 trap 'cleanup $?' EXIT
+
+if ! is_installed shopify; then
+  echo "shopify cli is not installed" >&2
+  exit 1
+fi
 
 step "Configuring shopify CLI"
 
@@ -70,21 +68,45 @@ enabled = false
 YAML
 
 # Secret environment variable that turns shopify CLI into CI mode that accepts environment credentials
-export CI=1
-export SHOPIFY_SHOP="$SHOP_STORE"
-export SHOPIFY_PASSWORD="$SHOP_APP_PASSWORD"
-
-shopify login
+export SHOPIFY_CLI_TTY=0
+export SHOPIFY_FLAG_STORE="$SHOP_STORE"
+export SHOPIFY_CLI_THEME_TOKEN="$SHOP_THEME_TOKEN"
 
 theme_root="${THEME_ROOT:-.}"
-
-step "Creating development theme"
+theme_command="${THEME_COMMAND:-"push --development --json --path=$theme_root"}"
 theme_push_log="$(mktemp)"
-shopify theme push --development --json $theme_root > "$theme_push_log" && cat "$theme_push_log"
-preview_url="$(cat "$theme_push_log" | tail -n 1 | jq -r '.theme.preview_url')"
-editor_url="$(cat "$theme_push_log" | tail -n 1 | jq -r '.theme.editor_url')"
-preview_id="$(cat "$theme_push_log" | tail -n 1 | jq -r '.theme.id')"
 
-echo "preview_url=$preview_url" >> $GITHUB_OUTPUT
-echo "editor_url=$editor_url" >> $GITHUB_OUTPUT
-echo "theme_id=$preview_id" >> $GITHUB_OUTPUT
+command="shopify theme $theme_command | tee $theme_push_log"
+
+log $command
+
+eval $command
+
+if [ $? -eq 1 ]; then
+  echo "Error running theme command!" >&2
+  exit 1
+fi
+
+# Extract JSON from shopify CLI output
+json_output="$(cat $theme_push_log | grep -o '{.*}')"
+
+preview_url="$(echo "$json_output" | tail -n 1 | jq -r '.theme.preview_url')"
+
+if [ -n "$preview_url" ]; then
+  echo "Preview URL: $preview_url"
+  echo "preview_url=$preview_url" >> $GITHUB_OUTPUT
+fi
+
+editor_url="$(echo "$json_output" | tail -n 1 | jq -r '.theme.editor_url')"
+
+if [ -n "$editor_url" ]; then
+  echo "Editor URL: $editor_url"
+  echo "editor_url=$editor_url" >> $GITHUB_OUTPUT
+fi
+
+preview_id="$(echo "$json_output" | tail -n 1 | jq -r '.theme.id')"
+
+if [ -n "$preview_id" ]; then
+  echo "Theme ID: $preview_id"
+  echo "theme_id=$preview_id" >> $GITHUB_OUTPUT
+fi
