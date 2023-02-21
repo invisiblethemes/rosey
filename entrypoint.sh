@@ -88,7 +88,7 @@ theme_push_log="$(mktemp)"
 
 step "Running theme command 'shopify theme $theme_command --path=$theme_root'"
 
-theme_command="shopify theme $theme_command --path=$theme_root > "$theme_push_log" && cat "$theme_push_log""
+theme_command="shopify theme $theme_command --path=$theme_root --json > "$theme_push_log" && cat "$theme_push_log""
 
 log $theme_command
 
@@ -101,9 +101,9 @@ fi
 
 echo "Succesfully ran theme command!"
 
-preview_url="$(cat "$theme_push_log" | awk '/View your theme:/{getline; print}' | sed 's/^ *//g')"
-editor_url="$(cat "$theme_push_log" | awk '/Customize this theme in the Theme Editor:/{getline; print}' | sed 's/^ *//g')"
-preview_id="$(echo "$editor_url" | sed -n 's/.*themes\/\([0-9]*\)\/editor.*/\1/p')"
+preview_url="$(cat "$theme_push_log" | tail -n 1 | jq -r '.theme.preview_url')"
+editor_url="$(cat "$theme_push_log" | tail -n 1 | jq -r '.theme.editor_url')"
+preview_id="$(cat "$theme_push_log" | tail -n 1 | jq -r '.theme.id')"
 
 echo "Preview URL: $preview_url"
 echo "Editor URL: $editor_url"
