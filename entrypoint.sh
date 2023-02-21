@@ -87,23 +87,24 @@ if [ $? -eq 1 ]; then
   exit 1
 fi
 
-# Try to gather theme output data and log it. If a custom theme command is used this may not work
+# Extract JSON from shopify CLI output
+json_output=$(grep -oE '{.*}' $theme_push_log)
 
-preview_url="$(cat "$theme_push_log" | tail -n 1 | jq -r '.theme.preview_url')"
+preview_url="$(echo "$json_output" | tail -n 1 | jq -r '.theme.preview_url')"
 
 if [ -n "$preview_url" ]; then
   echo "Preview URL: $preview_url"
   echo "preview_url=$preview_url" >> $GITHUB_OUTPUT
 fi
 
-editor_url="$(cat "$theme_push_log" | tail -n 1 | jq -r '.theme.editor_url')"
+editor_url="$(echo "$json_output" | tail -n 1 | jq -r '.theme.editor_url')"
 
 if [ -n "$editor_url" ]; then
   echo "Editor URL: $editor_url"
   echo "editor_url=$editor_url" >> $GITHUB_OUTPUT
 fi
 
-preview_id="$(cat "$theme_push_log" | tail -n 1 | jq -r '.theme.id')"
+preview_id="$(echo "$json_output" | tail -n 1 | jq -r '.theme.id')"
 
 if [ -n "$preview_id" ]; then
   echo "Theme ID: $preview_id"
