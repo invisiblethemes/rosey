@@ -88,9 +88,9 @@ if [ $? -eq 1 ]; then
 fi
 
 # Extract JSON from shopify CLI output
-json_output=$(grep -oE '{.*}' $theme_push_log)
+json_output="$(grep -oE '{.*}' $theme_push_log)"
 
-echo "Output: $json_output"
+printf "$json_output"
 
 preview_url="$(echo "$json_output" | tail -n 1 | jq -r '.theme.preview_url')"
 
