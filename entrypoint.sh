@@ -62,6 +62,11 @@ cleanup() {
 
 trap 'cleanup $?' EXIT
 
+if ! is_installed shopify; then
+  echo "shopify cli is not installed" >&2
+  exit 1
+fi
+
 step "Configuring shopify CLI"
 
 # Disable analytics
