@@ -76,11 +76,11 @@ theme_root="${THEME_ROOT:-.}"
 theme_command="${THEME_COMMAND:-"push --development --json --path=$theme_root"}"
 theme_push_log="$(mktemp)"
 
-theme_command="shopify theme $theme_command > "$theme_push_log" && cat "$theme_push_log""
+command="shopify theme $theme_command | tee $theme_push_log"
 
-log $theme_command
+log $command
 
-eval $theme_command
+eval $command
 
 if [ $? -eq 1 ]; then
   echo "Error running theme command!" >&2
