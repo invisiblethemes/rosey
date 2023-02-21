@@ -49,14 +49,6 @@ cleanup() {
     shopify logout
   fi
 
-  if [[ -f "lighthouserc.yml" ]]; then
-    rm "lighthouserc.yml"
-  fi
-
-  if [[ -f "setPreviewCookies.js" ]]; then
-    rm "setPreviewCookies.js"
-  fi
-
   return $1
 }
 
@@ -81,14 +73,10 @@ export SHOPIFY_FLAG_STORE="$SHOP_STORE"
 export SHOPIFY_CLI_THEME_TOKEN="$SHOP_THEME_TOKEN"
 
 theme_root="${THEME_ROOT:-.}"
-theme_command="${THEME_COMMAND:-"push --development"}"
-
-step "Creating development theme"
+theme_command="${THEME_COMMAND:-"push --development --json --path=$theme_root"}"
 theme_push_log="$(mktemp)"
 
-step "Running theme command 'shopify theme $theme_command --path=$theme_root'"
-
-theme_command="shopify theme $theme_command --path=$theme_root --json > "$theme_push_log" && cat "$theme_push_log""
+theme_command="shopify theme $theme_command > "$theme_push_log" && cat "$theme_push_log""
 
 log $theme_command
 
@@ -99,16 +87,25 @@ if [ $? -eq 1 ]; then
   exit 1
 fi
 
-echo "Succesfully ran theme command!"
+# Try to gather theme output data and log it. If a custom theme command is used this may not work
 
 preview_url="$(cat "$theme_push_log" | tail -n 1 | jq -r '.theme.preview_url')"
+
+if [ -n "$preview_url" ]; then
+  echo "Preview URL: $preview_url"
+  echo "preview_url=$preview_url" >> $GITHUB_OUTPUT
+fi
+
 editor_url="$(cat "$theme_push_log" | tail -n 1 | jq -r '.theme.editor_url')"
+
+if [ -n "$editor_url" ]; then
+  echo "Editor URL: $editor_url"
+  echo "editor_url=$editor_url" >> $GITHUB_OUTPUT
+fi
+
 preview_id="$(cat "$theme_push_log" | tail -n 1 | jq -r '.theme.id')"
 
-echo "Preview URL: $preview_url"
-echo "Editor URL: $editor_url"
-echo "Theme ID: $preview_id"
-
-echo "preview_url=$preview_url" >> $GITHUB_OUTPUT
-echo "editor_url=$editor_url" >> $GITHUB_OUTPUT
-echo "theme_id=$preview_id" >> $GITHUB_OUTPUT
+if [ -n "$preview_id" ]; then
+  echo "Theme ID: $preview_id"
+  echo "theme_id=$preview_id" >> $GITHUB_OUTPUT
+fi
