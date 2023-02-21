@@ -88,13 +88,11 @@ theme_push_log="$(mktemp)"
 
 step "Running theme command 'shopify theme $theme_command --path=$theme_root'"
 
-theme_command="shopify theme $theme_command --path=$theme_root > "$theme_push_log""
+theme_command="shopify theme $theme_command --path=$theme_root > "$theme_push_log" && cat "$theme_push_log""
 
-log theme_command
+log $theme_command
 
-eval theme_command
-
-cat "$theme_push_log"
+eval $theme_command
 
 if [ $? -eq 1 ]; then
   echo "Error running theme command!" >&2
