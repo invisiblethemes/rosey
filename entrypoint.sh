@@ -77,36 +77,36 @@ theme_command="${THEME_COMMAND:-"push --development --json --path=$theme_root"}"
 theme_push_log="$(mktemp)"
 
 # command="shopify theme $theme_command | tee $theme_push_log"
-command="shopify theme $theme_command"
+# command="shopify theme $theme_command"
 
-log $command
+# log $command
 
-eval $command
+# eval $command
 
-# Extract JSON from shopify CLI output
-json_output="$(cat $theme_push_log | grep -o '{.*}')"
+# # Extract JSON from shopify CLI output
+# json_output="$(cat $theme_push_log | grep -o '{.*}')"
 
-if [ -z "$json_output" ]; then
-  exit 0
-fi
+# if [ -z "$json_output" ]; then
+#   exit 0
+# fi
 
-preview_url="$(echo "$json_output" | tail -n 1 | jq -r '.theme.preview_url')"
+# preview_url="$(echo "$json_output" | tail -n 1 | jq -r '.theme.preview_url')"
 
-if [ -n "$preview_url" ]; then
-  echo "Preview URL: $preview_url"
-  echo "preview_url=$preview_url" >> $GITHUB_OUTPUT
-fi
+# if [ -n "$preview_url" ]; then
+#   echo "Preview URL: $preview_url"
+#   echo "preview_url=$preview_url" >> $GITHUB_OUTPUT
+# fi
 
-editor_url="$(echo "$json_output" | tail -n 1 | jq -r '.theme.editor_url')"
+# editor_url="$(echo "$json_output" | tail -n 1 | jq -r '.theme.editor_url')"
 
-if [ -n "$editor_url" ]; then
-  echo "Editor URL: $editor_url"
-  echo "editor_url=$editor_url" >> $GITHUB_OUTPUT
-fi
+# if [ -n "$editor_url" ]; then
+#   echo "Editor URL: $editor_url"
+#   echo "editor_url=$editor_url" >> $GITHUB_OUTPUT
+# fi
 
-preview_id="$(echo "$json_output" | tail -n 1 | jq -r '.theme.id')"
+# preview_id="$(echo "$json_output" | tail -n 1 | jq -r '.theme.id')"
 
-if [ -n "$preview_id" ]; then
-  echo "Theme ID: $preview_id"
-  echo "theme_id=$preview_id" >> $GITHUB_OUTPUT
-fi
+# if [ -n "$preview_id" ]; then
+#   echo "Theme ID: $preview_id"
+#   echo "theme_id=$preview_id" >> $GITHUB_OUTPUT
+# fi
