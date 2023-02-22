@@ -82,13 +82,12 @@ log $command
 
 eval $command
 
-if [ $? -eq 1 ]; then
-  echo "Error running theme command!" >&2
-  exit 1
-fi
-
 # Extract JSON from shopify CLI output
 json_output="$(cat $theme_push_log | grep -o '{.*}')"
+
+if [ -z "$json_output" ]; then
+  exit 0
+fi
 
 preview_url="$(echo "$json_output" | tail -n 1 | jq -r '.theme.preview_url')"
 
