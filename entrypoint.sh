@@ -76,7 +76,8 @@ theme_root="${THEME_ROOT:-.}"
 theme_command="${THEME_COMMAND:-"push --development --json --path=$theme_root"}"
 theme_push_log="$(mktemp)"
 
-command="shopify theme $theme_command | tee $theme_push_log"
+# command="shopify theme $theme_command | tee $theme_push_log"
+command="shopify theme $theme_command"
 
 log $command
 
