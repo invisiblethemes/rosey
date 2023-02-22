@@ -78,10 +78,11 @@ theme_push_log="$(mktemp)"
 
 # command="shopify theme $theme_command | tee $theme_push_log"
 # command="shopify theme $theme_command"
+command="exit 0"
 
 # log $command
 
-# eval $command
+eval $command
 
 # # Extract JSON from shopify CLI output
 # json_output="$(cat $theme_push_log | grep -o '{.*}')"
