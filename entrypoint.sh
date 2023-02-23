@@ -78,7 +78,7 @@ theme_push_log="$(mktemp)"
 
 # command="shopify theme $theme_command | tee $theme_push_log"
 # command="shopify theme $theme_command"
-command="exit 1"
+command="exit 1 || exit 0"
 
 log $command
 
