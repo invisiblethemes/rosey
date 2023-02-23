@@ -46,7 +46,6 @@ cleanup() {
   if [[ -n "${theme+x}" ]]; then
     step "Disposing development theme"
     shopify shopify theme delete -f -d
-    shopify logout
   fi
 
   return $1
@@ -78,7 +77,7 @@ theme_push_log="$(mktemp)"
 
 # command="shopify theme $theme_command | tee $theme_push_log"
 # command="shopify theme $theme_command"
-command="exit 1 || exit 0"
+command="trap 'echo \"Caught exit 1\"' EXIT; exit 1"
 
 log $command
 
