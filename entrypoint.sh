@@ -78,9 +78,35 @@ theme_push_log="$(mktemp)"
 
 command="shopify theme $theme_command | tee $theme_push_log"
 
+exp_backoff() {
+  local command="$1"
+  local max_attempts="${2:-5}"
+  local attempt=0
+  local delay=1
+
+  while [ "$attempt" -lt "$max_attempts" ]; do
+    # Run the command and check if it succeeds
+    eval "$command" && break
+
+    # If the command fails, increment the attempt counter and apply the delay
+    attempt=$((attempt + 1))
+    echo "Attempt $attempt of $max_attempts failed, retrying in $delay seconds..."
+    sleep $delay
+
+    # Calculate the next delay, doubling it each time
+    delay=$((delay * 2))
+  done
+
+  if [ "$attempt" -eq "$max_attempts" ]; then
+    echo "Maximum attempts reached, aborting."
+    return 1
+  fi
+}
+
 log $command
 
-eval $command
+# Run command with exponential backoff to get around Shopify "2 req/s" rate limit
+exp_backoff "$command"
 
 if [ $? -eq 1 ]; then
   echo "Error running theme command!" >&2
