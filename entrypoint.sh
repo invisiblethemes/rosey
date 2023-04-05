@@ -105,7 +105,7 @@ exp_backoff() {
 
 log $command
 
-exp_backoff $command
+exp_backoff "$command"
 
 if [ $? -eq 1 ]; then
   echo "Error running theme command!" >&2
