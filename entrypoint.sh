@@ -85,10 +85,16 @@ exp_backoff() {
   local delay=1
 
   while [ "$attempt" -lt "$max_attempts" ]; do
-    # Run the command and check if it succeeds
-    eval "$command" && break
+    # Run the command and store the output
+    local output=$(eval "$command" 2>&1)
 
-    # If the command fails, increment the attempt counter and apply the delay
+    # Check if the command returns the
+    if ! echo "$output" | grep -q "Reduce request rates"; then
+      # If there's no rate limit error, break the loop
+      break
+    fi
+
+    # If the command fails because of a 429, increment the attempt counter and apply the delay
     attempt=$((attempt + 1))
     echo "Attempt $attempt of $max_attempts failed, retrying in $delay seconds..."
     sleep $delay
