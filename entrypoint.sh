@@ -85,33 +85,42 @@ exp_backoff() {
   local delay=1
 
   while [ "$attempt" -lt "$max_attempts" ]; do
-    # Run the command and store the output
-    local output=$(eval "$command" 2>&1)
+    local_log="$(mktemp)"
+    set -o pipefail
 
-    # Check if the command returns the
-    if ! echo "$output" | grep -q "Reduce request rates"; then
-      # If there's no rate limit error, break the loop
+    # Run the command and store the output
+    eval "$command" | tee $local_log
+
+    local exit_code=$?
+
+    # Check if the command contains anything about rate limiting
+    if [ "$exit_code" -eq 1 ] && (cat "$local_log" | grep -q "429" || cat "$local_log" | grep -q "Reduce request rates"); then
+      # If there's a rate limit error, increment the attempt counter and apply the delay
+      attempt=$((attempt + 1))
+      echo "Attempt $attempt of $max_attempts failed due to rate limit, retrying in $delay seconds..."
+      sleep $delay
+
+      # Calculate the next delay, doubling it each time
+      delay=$((delay * 2))
+    elif [ "$exit_code" -eq 1 ]; then
+      # If the exit code is 1 (but not due to rate limiting), exit with error
+      echo "not 429 error"
+      exit 1
+    else
+      # If the exit code is not 1, break
+      echo "success"
       break
     fi
-
-    # If the command fails because of a 429, increment the attempt counter and apply the delay
-    attempt=$((attempt + 1))
-    echo "Attempt $attempt of $max_attempts failed, retrying in $delay seconds..."
-    sleep $delay
-
-    # Calculate the next delay, doubling it each time
-    delay=$((delay * 2))
   done
 
   if [ "$attempt" -eq "$max_attempts" ]; then
-    echo "Maximum attempts reached, aborting."
-    return 1
+    echo "Maximum attempts reached, aborting." >&2
+    exit 1
   fi
 }
 
 log $command
 
-# Run command with exponential backoff to get around Shopify "2 req/s" rate limit
 exp_backoff "$command"
 
 if [ $? -eq 1 ]; then
