@@ -72,12 +72,6 @@ export SHOPIFY_CLI_STACKTRACE=1
 export SHOPIFY_FLAG_STORE="$SHOP_STORE"
 export SHOPIFY_CLI_THEME_TOKEN="$SHOP_THEME_TOKEN"
 
-theme_root="${THEME_ROOT:-.}"
-theme_command="${THEME_COMMAND:-"push --development --json --path=$theme_root"}"
-theme_push_log="$(mktemp)"
-
-command="shopify theme $theme_command | tee $theme_push_log"
-
 exp_backoff() {
   local command="$1"
   local max_attempts="${2:-5}"
@@ -119,8 +113,14 @@ exp_backoff() {
   fi
 }
 
+theme_root="${THEME_ROOT:-.}"
+theme_command="${THEME_COMMAND:-"push --development --json --path=$theme_root"}"
+theme_push_log="$(mktemp)"
+command="shopify theme $theme_command | tee $theme_push_log"
+
 log $command
 
+# Run command with exponential backoff in case we get rate-limited
 exp_backoff "$command"
 
 if [ $? -eq 1 ]; then
