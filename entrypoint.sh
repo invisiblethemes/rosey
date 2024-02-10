@@ -19,6 +19,45 @@
 # Add global node bin to PATH (from the Dockerfile)
 export PATH="$PATH:$npm_config_prefix/bin"
 
+
+# Check if DEPLOY_LIST_JSON and DEPLOY_TEMPLATE_TOML are set
+if [[ -n "$DEPLOY_LIST_JSON" && -n "$DEPLOY_TEMPLATE_TOML" ]]; then
+    # Assuming DEPLOY_LIST_JSON and DEPLOY_TEMPLATE_TOML are passed as environment variables
+    deployments_json="$DEPLOY_LIST_JSON"
+    template="$DEPLOY_TEMPLATE_TOML"  # Fetch the template from an environment variable
+
+    # Define the path for the generated TOML file
+    output_path="./shopify.theme.toml"
+
+    # Clear or create the TOML file
+    echo "" > $output_path
+
+    # Initialize an empty string to hold all environment arguments
+    toml_store_list=""
+
+    echo "${deployments_json}" | jq -c '.stores[]' | while read -r store; do
+        url=$(echo $store | jq -r '.url')
+        theme=$(echo $store | jq -r '.theme')
+        secret=$(echo $store | jq -r '.secret')
+        password="${!secret}" # Dereference the secret name to get its value from the environment
+
+        # Replace placeholders in the template with actual values and append to the TOML file
+        output=$(echo "$template" | sed "s/{{ url }}/$url/g" | sed "s/{{ theme }}/$theme/g" | sed "s/{{ password }}/$password/g")
+        echo "$output" >> $output_path
+
+        # Append the current store's formatted identifier to the toml_store_list string
+        env_arg="--${url}-${theme}"
+        toml_store_list="${toml_store_list} ${env_arg}"
+    done
+
+    # After processing all stores, output the toml_store_list to be used by subsequent steps/actions
+    echo "toml_store_list=${toml_store_list}" >> $GITHUB_ENV
+else
+    echo "deploy_list_json or deploy_template_toml is not set, no toml created"
+fi
+
+
+
 # END of GitHub Action Specific Code
 ####################################################################
 
