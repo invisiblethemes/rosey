@@ -17,6 +17,12 @@ inputs:
   theme_command:
     description: 'Optional command to run instead of `push --development`'
     required: false
+  deploy_list_json:
+    description: 'JSON string containing stores, themes, and GitHub secrets for deploy passwords'
+    required: false
+  deploy_template_toml:
+    description: 'TOML template string for deployment environments'
+    required: false
   cleanup_theme:
     description: 'Whether or not to delete the development theme in a post-action script'
     required: false
