@@ -11,20 +11,15 @@
 #
 # Here, we're translating the GitHub action input arguments into environment variables
 # for this script to use.
-[[ -n "$INPUT_THEME_TOKEN" ]]          && export SHOP_THEME_TOKEN="$INPUT_THEME_TOKEN" || echo "theme_token not provided, proceeding without it."
-[[ -n "$INPUT_STORE" ]]                && export SHOP_STORE="$INPUT_STORE" || echo "store not provided, proceeding without it."
+[[ -n "$INPUT_THEME_TOKEN" ]]          && export SHOP_THEME_TOKEN="$INPUT_THEME_TOKEN" || { export SHOP_THEME_TOKEN=""; echo "theme_token not provided, proceeding without it."; }
+[[ -n "$INPUT_STORE" ]]                && export SHOP_STORE="$INPUT_STORE" || { export SHOP_STORE=""; echo "store not provided, proceeding without it."; }
 [[ -n "$INPUT_THEME_ROOT" ]]           && export THEME_ROOT="$INPUT_THEME_ROOT"
 [[ -n "$INPUT_THEME_COMMAND" ]]        && export THEME_COMMAND="$INPUT_THEME_COMMAND"
-[[ -n "$INPUT_DEPLOY_LIST_JSON" ]]     && export DEPLOY_LIST_JSON="$INPUT_DEPLOY_LIST_JSON" || echo "deploy_list_json store not provided, proceeding without it."
-[[ -n "$INPUT_DEPLOY_TEMPLATE_TOML" ]] && export DEPLOY_TEMPLATE_TOML="$INPUT_DEPLOY_TEMPLATE_TOML"  || echo "deploy_template_toml store not provided, proceeding without it."
-
+[[ -n "$INPUT_DEPLOY_LIST_JSON" ]]     && export DEPLOY_LIST_JSON="$INPUT_DEPLOY_LIST_JSON" || { export DEPLOY_LIST_JSON=""; echo "deploy_list_json store not provided, proceeding without it."; }
+[[ -n "$INPUT_DEPLOY_TEMPLATE_TOML" ]] && export DEPLOY_TEMPLATE_TOML="$INPUT_DEPLOY_TEMPLATE_TOML"  || { export DEPLOY_TEMPLATE_TOML=""; echo "deploy_template_toml store not provided, proceeding without it."; }
 
 # Add global node bin to PATH (from the Dockerfile)
 export PATH="$PATH:$npm_config_prefix/bin"
-
-
-
-
 
  # END of GitHub Action Specific Code
 ####################################################################
