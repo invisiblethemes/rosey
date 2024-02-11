@@ -190,21 +190,18 @@ if [[ -n "$DEPLOY_LIST_JSON" && -n "$DEPLOY_TEMPLATE_TOML" ]]; then
         theme=$(echo $store | jq -r '.theme')
         password=$(echo $store | jq -r '.password')
 
-        echo "URL: $url"
-        echo "Theme: $theme"
-        echo "Secret name: $password"
-
-        # Check if the secret environment variable is set
+        # Check if the secret environment variable was passed into the action
         if [[ -z "${!password+x}" ]]; then
-            echo "Password for $url not set."
+            echo "GitHub secret for deploying to $url not passed into env of action. Skipping."
+            continue # Skip this iteration
         fi
 
-        password="$PASSWORD_BIKE" # Now safe to dereference
-        echo "De-referenced: $password"
+        password="${!password}" # Now safe to dereference
 
         # Replace placeholders in the template with actual values and append to the TOML file
         output=$(echo "$template" | sed "s/{{ url }}/$url/g" | sed "s/{{ theme }}/$theme/g" | sed "s/{{ password }}/$password/g")
-        
+        echo "Adding: $url.myshopify.com | Theme ID: $theme | Config toml environment:"
+        echo "$output"
         echo "$output" >> $output_path
 
         # Append the current store's formatted identifier to the toml_store_list string
