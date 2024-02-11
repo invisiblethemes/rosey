@@ -28,6 +28,7 @@ export PATH="$PATH:$npm_config_prefix/bin"
 
 # Portable code below
 set -eou pipefail
+deployment_executed=false
 
 log() {
   echo "$@" 1>&2
@@ -70,6 +71,10 @@ mkdir -p ~/.config/shopify && cat <<-YAML > ~/.config/shopify/config
 [analytics]
 enabled = false
 YAML
+
+
+####################################################################
+# Shopify single store CLI Deployment
 
 # Only proceed with the following if STORE and THEME_TOKEN are provided
 if [[ -n "$SHOP_STORE" && -n "$SHOP_THEME_TOKEN" ]]; then
@@ -157,9 +162,15 @@ if [[ -n "$SHOP_STORE" && -n "$SHOP_THEME_TOKEN" ]]; then
     echo "Theme ID: $preview_id"
     echo "theme_id=$preview_id" >> $GITHUB_OUTPUT
   fi
+
+  deployment_executed=true
 else
     echo "SHOP_STORE or SHOP_THEME_TOKEN is not set, skipping Shopify CLI commands."
 fi
+
+
+####################################################################
+# TOML File Generation for Deployment
 
 # Check if DEPLOY_LIST_JSON and DEPLOY_TEMPLATE_TOML are set
 if [[ -n "$DEPLOY_LIST_JSON" && -n "$DEPLOY_TEMPLATE_TOML" ]]; then
@@ -193,6 +204,17 @@ if [[ -n "$DEPLOY_LIST_JSON" && -n "$DEPLOY_TEMPLATE_TOML" ]]; then
 
     # After processing all stores, output the toml_store_list to be used by subsequent steps/actions
     echo "toml_store_list=${toml_store_list}" >> $GITHUB_ENV
+    deployment_executed=true
 else
     echo "deploy_list_json or deploy_template_toml is not set, no toml created"
+fi
+
+####################################################################
+# Final Check
+
+if [ "$deployment_executed" = false ]; then
+  echo -e "Error: Neither Shopify CLI deployment nor TOML file generation was executed."
+  echo -e "If deploying multiple stores, ensure deploy_list_json is set with deploy_template_toml."
+  echo -e "If deploying a single store, ensure shop_store is set with shop_theme_token."
+  exit 
 fi
