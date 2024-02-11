@@ -188,19 +188,23 @@ if [[ -n "$DEPLOY_LIST_JSON" && -n "$DEPLOY_TEMPLATE_TOML" ]]; then
     echo "${deployments_json}" | jq -c '.stores[]' | while read -r store; do
         url=$(echo $store | jq -r '.url')
         theme=$(echo $store | jq -r '.theme')
-        secret=$(echo $store | jq -r '.secret')
+        password=$(echo $store | jq -r '.password')
 
         # Check if the secret environment variable is set
-        if [[ -z "${!secret+x}" ]]; then
-            echo "Secret for $url not set. Skipping."
+        if [[ -z "${!password+x}" ]]; then
+            echo "Password for $url not set. Skipping."
             continue # Skip this iteration
         fi
 
         password="$PASSWORD_BIKE" # Now safe to dereference
 
+        echo "URL: $url"
+        echo "Theme: $theme"
+        echo "Secret: $password"
+
         # Replace placeholders in the template with actual values and append to the TOML file
         output=$(echo "$template" | sed "s/{{ url }}/$url/g" | sed "s/{{ theme }}/$theme/g" | sed "s/{{ password }}/$password/g")
-        echo "$output"
+        
         echo "$output" >> $output_path
 
         # Append the current store's formatted identifier to the toml_store_list string
