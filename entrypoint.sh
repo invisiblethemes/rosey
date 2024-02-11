@@ -189,7 +189,14 @@ if [[ -n "$DEPLOY_LIST_JSON" && -n "$DEPLOY_TEMPLATE_TOML" ]]; then
         url=$(echo $store | jq -r '.url')
         theme=$(echo $store | jq -r '.theme')
         secret=$(echo $store | jq -r '.secret')
-        password="${!secret}" # Dereference the secret name to get its value from the environment
+        
+        # Check if the secret environment variable is set
+        if [[ -z "${!secret+x}" ]]; then
+            echo "Secret for $url not set. Skipping."
+            continue # Skip this iteration
+        fi
+
+        password="${!secret}" # Now safe to dereference
 
         # Replace placeholders in the template with actual values and append to the TOML file
         output=$(echo "$template" | sed "s/{{ url }}/$url/g" | sed "s/{{ theme }}/$theme/g" | sed "s/{{ password }}/$password/g")
