@@ -196,8 +196,7 @@ if [[ -n "$DEPLOY_LIST_JSON" && -n "$DEPLOY_TEMPLATE_TOML" ]]; then
 
         # Check if the secret environment variable is set
         if [[ -z "${!password+x}" ]]; then
-            echo "Password for $url not set. Skipping."
-            continue # Skip this iteration
+            echo "Password for $url not set."
         fi
 
         password="$PASSWORD_BIKE" # Now safe to dereference
