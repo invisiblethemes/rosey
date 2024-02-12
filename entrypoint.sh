@@ -200,14 +200,16 @@ if [[ -n "$DEPLOY_LIST_JSON" && -n "$DEPLOY_TEMPLATE_TOML" ]]; then
 
         password="${!password}" # Now safe to dereference
 
+        # Append the current store's formatted identifier to the toml_store_list string
+        env_arg="--${url}-${theme}"
+        toml_store_list="${toml_store_list}, ${env_arg}"
+        echo "$toml_store_list"
+
         # Replace placeholders in the template with actual values and append to the TOML file
         output=$(echo "$template" | sed "s/{{ url }}/$url/g" | sed "s/{{ theme }}/$theme/g" | sed "s/{{ password }}/$password/g")
         echo "$output"
         echo "$output" >> $output_path
 
-        # Append the current store's formatted identifier to the toml_store_list string
-        env_arg="--${url}-${theme}"
-        toml_store_list="${toml_store_list} ${env_arg}"
 
         deployment_executed=true
     done
