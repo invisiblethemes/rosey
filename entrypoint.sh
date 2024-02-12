@@ -185,6 +185,9 @@ if [[ -n "$DEPLOY_LIST_JSON" && -n "$DEPLOY_TEMPLATE_TOML" ]]; then
     # Initialize an empty string to hold all environment arguments
     toml_store_list=""
 
+    echo "# Theme root: $THEME_ROOT"
+    echo "# Writing to: $output_path"
+
     echo "${deployments_json}" | jq -c '.stores[]' | while read -r store; do
         url=$(echo $store | jq -r '.url')
         theme=$(echo $store | jq -r '.theme')
@@ -200,18 +203,18 @@ if [[ -n "$DEPLOY_LIST_JSON" && -n "$DEPLOY_TEMPLATE_TOML" ]]; then
 
         # Replace placeholders in the template with actual values and append to the TOML file
         output=$(echo "$template" | sed "s/{{ url }}/$url/g" | sed "s/{{ theme }}/$theme/g" | sed "s/{{ password }}/$password/g")
-        echo "Adding: $url.myshopify.com | Theme ID: $theme | Config toml environment:"
         echo "$output"
         echo "$output" >> $output_path
 
         # Append the current store's formatted identifier to the toml_store_list string
         env_arg="--${url}-${theme}"
         toml_store_list="${toml_store_list} ${env_arg}"
+
+        deployment_executed=true
     done
 
     # After processing all stores, output the toml_store_list to be used by subsequent steps/actions
     echo "toml_store_list=${toml_store_list}" >> $GITHUB_ENV
-    deployment_executed=true
 else
     echo "deploy_list_json or deploy_template_toml is not set, no toml created"
 fi
