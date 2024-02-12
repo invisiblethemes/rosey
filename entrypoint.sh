@@ -214,6 +214,9 @@ if [[ -n "$DEPLOY_LIST_JSON" && -n "$DEPLOY_TEMPLATE_TOML" ]]; then
 
     # After processing all stores, output the toml_store_list to be used by subsequent steps/actions
     echo "toml_store_list=${toml_store_list}" >> $GITHUB_ENV
+    
+    # Log env output
+    echo "toml_store_list=${toml_store_list}"
 else
     echo "deploy_list_json or deploy_template_toml is not set, no toml created"
 fi
