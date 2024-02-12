@@ -177,7 +177,7 @@ if [[ -n "$DEPLOY_LIST_JSON" && -n "$DEPLOY_TEMPLATE_TOML" ]]; then
     template="$DEPLOY_TEMPLATE_TOML"  # Fetch the template from an environment variable
 
     # Define the path for the generated TOML file
-    output_path="./shopify.theme.toml"
+    output_path="$THEME_ROOT/shopify.theme.toml"
 
     # Clear or create the TOML file
     echo "" > $output_path
@@ -185,7 +185,6 @@ if [[ -n "$DEPLOY_LIST_JSON" && -n "$DEPLOY_TEMPLATE_TOML" ]]; then
     # Initialize an empty string to hold all environment arguments
     toml_store_list=""
 
-    echo "# Theme root: $THEME_ROOT"
     echo "# Writing to: $output_path"
 
     echo "${deployments_json}" | jq -c '.stores[]' | while read -r store; do
