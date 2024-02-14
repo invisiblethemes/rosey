@@ -202,7 +202,9 @@ if [[ -n "$DEPLOY_LIST_JSON" && -n "$DEPLOY_TEMPLATE_TOML" ]]; then
 
         # Append the current store's formatted identifier to the toml_store_list_arr array
         env_arg="--$url-$theme"
+        echo $env_arg
         toml_store_list_arr+=("$env_arg")
+        echo $toml_store_list_arr
 
         # Replace placeholders in the template with actual values and append to the TOML file
         output=$(echo "$template" | sed "s/{{ url }}/$url/g" | sed "s/{{ theme }}/$theme/g" | sed "s/{{ password }}/$password/g")
@@ -215,6 +217,7 @@ else
     echo "deploy_list_json or deploy_template_toml is not set, no toml created"
 fi
 
+echo $toml_store_list_arr
 # Convert array to comma-separated string without leading comma
 toml_store_list=$(IFS=, ; echo "${toml_store_list_arr[*]}")
 echo "toml_store_list=$toml_store_list"
