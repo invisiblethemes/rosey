@@ -184,7 +184,6 @@ if [[ -n "$DEPLOY_LIST_JSON" && -n "$DEPLOY_TEMPLATE_TOML" ]]; then
 
     # Clear or create the TOML file
     echo "" > $output_path
-
     echo "# Writing to: $output_path"
 
     echo "${deployments_json}" | jq -c '.stores[]' | while read -r store; do
@@ -206,6 +205,12 @@ if [[ -n "$DEPLOY_LIST_JSON" && -n "$DEPLOY_TEMPLATE_TOML" ]]; then
         toml_store_list_arr+=("$env_arg")
         echo $toml_store_list_arr
 
+        # Convert array to comma-separated string without leading comma
+        toml_store_list=$(IFS=, ; echo "${toml_store_list_arr[*]}")
+        echo "toml_store_list=$toml_store_list" >> $GITHUB_ENV
+        echo "GITHUB_ENV:"
+        echo $GITHUB_ENV
+
         # Replace placeholders in the template with actual values and append to the TOML file
         output=$(echo "$template" | sed "s/{{ url }}/$url/g" | sed "s/{{ theme }}/$theme/g" | sed "s/{{ password }}/$password/g")
         echo "$output"
@@ -217,17 +222,7 @@ else
     echo "deploy_list_json or deploy_template_toml is not set, no toml created"
 fi
 
-echo $toml_store_list_arr
-# Convert array to comma-separated string without leading comma
-toml_store_list=$(IFS=, ; echo "${toml_store_list_arr[*]}")
-echo "toml_store_list=$toml_store_list"
 
-# Output the toml_store_list string to be used by subsequent steps/actions
-if [[ -n "$toml_store_list" ]]; then
-    echo "toml_store_list=$toml_store_list" >> $GITHUB_ENV
-else
-    echo "No stores processed, toml_store_list is empty."
-fi
 
 
 ####################################################################
