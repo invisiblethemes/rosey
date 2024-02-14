@@ -202,8 +202,8 @@ if [[ -n "$DEPLOY_LIST_JSON" && -n "$DEPLOY_TEMPLATE_TOML" ]]; then
 
         # Append the current store's formatted identifier to the toml_store_list string
         env_arg="--$url-$theme"
-        toml_store_list="$toml_store_list, $env_arg"
-        echo "$toml_store_list"
+        toml_store_list="$env_arg, $toml_store_list"
+        echo $toml_store_list
 
         # Replace placeholders in the template with actual values and append to the TOML file
         output=$(echo "$template" | sed "s/{{ url }}/$url/g" | sed "s/{{ theme }}/$theme/g" | sed "s/{{ password }}/$password/g")
@@ -218,8 +218,8 @@ fi
 
 # After processing all stores, output the toml_store_list to be used by subsequent steps/actions
 if [[ -n "$toml_store_list" ]]; then
-  echo "toml_store_list=${toml_store_list}" >> $GITHUB_ENV
-  echo "toml_store_list=${toml_store_list}"
+  echo "toml_store_list=$toml_store_list" >> $GITHUB_ENV
+  echo "toml_store_list=$toml_store_list"
 else
   echo "No stores processed, toml_store_list is empty."
 fi
