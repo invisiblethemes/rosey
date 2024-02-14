@@ -200,7 +200,7 @@ if [[ -n "$DEPLOY_LIST_JSON" && -n "$DEPLOY_TEMPLATE_TOML" ]]; then
         password="${!password}" # Now safe to dereference
 
         # Append the current store's formatted identifier to the toml_store_list_arr array
-        env_arg="--$url-$theme"
+        env_arg="$url-$theme"
         echo $env_arg
         toml_store_list_arr+=("$env_arg")
         echo $toml_store_list_arr
