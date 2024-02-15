@@ -220,10 +220,15 @@ if [[ -n "$DEPLOY_LIST_JSON" && -n "$DEPLOY_TEMPLATE_TOML" ]]; then
         deployment_executed=true
     done
 
+  # Toml store list
+  toml_store_list=$(IFS=, ; echo "${toml_store_list_arr[*]}")
+  echo "Store list:"
+  echo $toml_store_list
+
   # Run theme_command, assume nothing about command structure
   theme_root="${THEME_ROOT:-.}"
   theme_push_log="$(mktemp)"
-  command="$THEME_COMMAND | tee $theme_push_log"
+  command="$THEME_COMMAND --env=$toml_store_list | tee $theme_push_log"
 
   log $command
 
