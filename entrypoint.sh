@@ -10,20 +10,23 @@
 # delete the code below. Everything else is platform independent.
 #
 # Here, we're translating the GitHub action input arguments into environment variables
-# for this scrip to use.
-[[ -n "$INPUT_THEME_TOKEN" ]]       && export SHOP_THEME_TOKEN="$INPUT_THEME_TOKEN"
-[[ -n "$INPUT_STORE" ]]             && export SHOP_STORE="$INPUT_STORE"
-[[ -n "$INPUT_THEME_ROOT" ]]        && export THEME_ROOT="$INPUT_THEME_ROOT"
-[[ -n "$INPUT_THEME_COMMAND" ]]     && export THEME_COMMAND="$INPUT_THEME_COMMAND"
+# for this script to use.
+[[ -n "$INPUT_THEME_TOKEN" ]]          && export SHOP_THEME_TOKEN="$INPUT_THEME_TOKEN" || { export SHOP_THEME_TOKEN=""; echo "theme_token not provided, proceeding without it."; }
+[[ -n "$INPUT_STORE" ]]                && export SHOP_STORE="$INPUT_STORE" || { export SHOP_STORE=""; echo "store not provided, proceeding without it."; }
+[[ -n "$INPUT_THEME_ROOT" ]]           && export THEME_ROOT="$INPUT_THEME_ROOT"
+[[ -n "$INPUT_THEME_COMMAND" ]]        && export THEME_COMMAND="$INPUT_THEME_COMMAND"
+[[ -n "$INPUT_DEPLOY_LIST_JSON" ]]     && export DEPLOY_LIST_JSON="$INPUT_DEPLOY_LIST_JSON" || { export DEPLOY_LIST_JSON=""; echo "deploy_list_json store not provided, proceeding without it."; }
+[[ -n "$INPUT_DEPLOY_TEMPLATE_TOML" ]] && export DEPLOY_TEMPLATE_TOML="$INPUT_DEPLOY_TEMPLATE_TOML"  || { export DEPLOY_TEMPLATE_TOML=""; echo "deploy_template_toml store not provided, proceeding without it."; }
 
 # Add global node bin to PATH (from the Dockerfile)
 export PATH="$PATH:$npm_config_prefix/bin"
 
-# END of GitHub Action Specific Code
+ # END of GitHub Action Specific Code
 ####################################################################
 
 # Portable code below
 set -eou pipefail
+deployment_executed=false
 
 log() {
   echo "$@" 1>&2
@@ -67,10 +70,6 @@ mkdir -p ~/.config/shopify && cat <<-YAML > ~/.config/shopify/config
 enabled = false
 YAML
 
-export SHOPIFY_CLI_TTY=0
-export SHOPIFY_CLI_STACKTRACE=1
-export SHOPIFY_FLAG_STORE="$SHOP_STORE"
-export SHOPIFY_CLI_THEME_TOKEN="$SHOP_THEME_TOKEN"
 
 exp_backoff() {
   local command="$1"
@@ -113,41 +112,150 @@ exp_backoff() {
   fi
 }
 
-theme_root="${THEME_ROOT:-.}"
-theme_command="${THEME_COMMAND:-"push --development --json --path=$theme_root"}"
-theme_push_log="$(mktemp)"
-command="shopify theme $theme_command | tee $theme_push_log"
+export SHOPIFY_CLI_TTY=0
+export SHOPIFY_CLI_STACKTRACE=1
 
-log $command
+####################################################################
+# Shopify single store CLI Deployment
 
-# Run command with exponential backoff in case we get rate-limited
-exp_backoff "$command"
+# Only proceed with the following if STORE and THEME_TOKEN are provided
+if [[ -n "$SHOP_STORE" && -n "$SHOP_THEME_TOKEN" ]]; then
+  export SHOPIFY_FLAG_STORE="$SHOP_STORE"
+  export SHOPIFY_CLI_THEME_TOKEN="$SHOP_THEME_TOKEN"
 
-if [ $? -eq 1 ]; then
-  echo "Error running theme command!" >&2
-  exit 1
+  theme_root="${THEME_ROOT:-.}"
+  theme_command="${THEME_COMMAND:-"push --development --json --path=$theme_root"}"
+  theme_push_log="$(mktemp)"
+  command="shopify theme $theme_command | tee $theme_push_log"
+
+  log $command
+
+  # Run command with exponential backoff in case we get rate-limited
+  exp_backoff "$command"
+
+  if [ $? -eq 1 ]; then
+    echo "Error running theme command!" >&2
+    exit 1
+  fi
+
+  # Extract JSON from shopify CLI output
+  json_output="$(cat $theme_push_log | grep -o '{.*}')"
+
+  preview_url="$(echo "$json_output" | tail -n 1 | jq -r '.theme.preview_url')"
+
+  if [ -n "$preview_url" ]; then
+    echo "Preview URL: $preview_url"
+    echo "preview_url=$preview_url" >> $GITHUB_OUTPUT
+  fi
+
+  editor_url="$(echo "$json_output" | tail -n 1 | jq -r '.theme.editor_url')"
+
+  if [ -n "$editor_url" ]; then
+    echo "Editor URL: $editor_url"
+    echo "editor_url=$editor_url" >> $GITHUB_OUTPUT
+  fi
+
+  preview_id="$(echo "$json_output" | tail -n 1 | jq -r '.theme.id')"
+
+  if [ -n "$preview_id" ]; then
+    echo "Theme ID: $preview_id"
+    echo "theme_id=$preview_id" >> $GITHUB_OUTPUT
+  fi
+
+  deployment_executed=true
+else
+    echo "SHOP_STORE or SHOP_THEME_TOKEN is not set, skipping Shopify CLI commands."
 fi
 
-# Extract JSON from shopify CLI output
-json_output="$(cat $theme_push_log | grep -o '{.*}')"
 
-preview_url="$(echo "$json_output" | tail -n 1 | jq -r '.theme.preview_url')"
+####################################################################
+# TOML File Generation for Deployment
 
-if [ -n "$preview_url" ]; then
-  echo "Preview URL: $preview_url"
-  echo "preview_url=$preview_url" >> $GITHUB_OUTPUT
+# Initialize an empty string to hold all environment arguments
+declare -a toml_store_list_arr=()
+
+# Check if DEPLOY_LIST_JSON and DEPLOY_TEMPLATE_TOML are set
+if [[ -n "$DEPLOY_LIST_JSON" && -n "$DEPLOY_TEMPLATE_TOML" ]]; then
+    # Assuming DEPLOY_LIST_JSON and DEPLOY_TEMPLATE_TOML are passed as environment variables
+    deployments_json="$DEPLOY_LIST_JSON"
+    template="$DEPLOY_TEMPLATE_TOML"  # Fetch the template from an environment variable
+
+    # Define the path for the generated TOML file
+    output_path="$THEME_ROOT/shopify.theme.toml"
+
+    # Clear or create the TOML file
+    echo "" > $output_path
+    echo "# Writing to: $output_path"
+
+    echo "${deployments_json}" | jq -c '.stores[]' | while read -r store; do
+        url=$(echo $store | jq -r '.url')
+        theme=$(echo $store | jq -r '.theme')
+        password=$(echo $store | jq -r '.password')
+
+        # Check if the secret environment variable was passed into the action
+        if [[ -z "${!password+x}" ]]; then
+            echo "GitHub secret for deploying to $url not passed into env of action. Skipping."
+            continue # Skip this iteration
+        fi
+
+        password="${!password}" # Now safe to dereference
+
+        # Append the current store's formatted identifier to the toml_store_list_arr array
+        env_arg="$url-$theme"
+        echo $env_arg
+        toml_store_list_arr+=("$env_arg")
+        echo $toml_store_list_arr
+
+        # Convert array to comma-separated string without leading comma
+        toml_store_list=$(IFS=, ; echo "${toml_store_list_arr[*]}")
+        echo "toml_store_list=$toml_store_list" >> $GITHUB_ENV
+        echo "GITHUB_ENV:"
+        echo $GITHUB_ENV
+
+        # Replace placeholders in the template with actual values and append to the TOML file
+        output=$(echo "$template" | sed "s/{{ url }}/$url/g" | sed "s/{{ theme }}/$theme/g" | sed "s/{{ password }}/$password/g")
+        echo "$output"
+        echo "$output" >> $output_path
+        
+        deployment_executed=true
+    done
+
+  # Toml store list
+  toml_store_list=$(IFS=, ; echo "${toml_store_list_arr[*]}")
+  echo "Store list:"
+  echo $toml_store_list
+
+  # Run theme_command, assume nothing about command structure
+  theme_root="${THEME_ROOT:-.}"
+  theme_push_log="$(mktemp)"
+  command="$THEME_COMMAND --env=$toml_store_list | tee $theme_push_log"
+
+  log $command
+
+  # Run command with exponential backoff in case we get rate-limited
+  exp_backoff "$command"
+
+  if [ $? -eq 1 ]; then
+    echo "Error running theme command!" >&2
+    exit 1
+  fi
+
+  # Extract JSON from shopify CLI output
+  log $theme_push_log
+
+else
+    echo "deploy_list_json or deploy_template_toml is not set, no toml created"
 fi
 
-editor_url="$(echo "$json_output" | tail -n 1 | jq -r '.theme.editor_url')"
 
-if [ -n "$editor_url" ]; then
-  echo "Editor URL: $editor_url"
-  echo "editor_url=$editor_url" >> $GITHUB_OUTPUT
-fi
 
-preview_id="$(echo "$json_output" | tail -n 1 | jq -r '.theme.id')"
 
-if [ -n "$preview_id" ]; then
-  echo "Theme ID: $preview_id"
-  echo "theme_id=$preview_id" >> $GITHUB_OUTPUT
+####################################################################
+# Final Check
+
+if [ "$deployment_executed" = false ]; then
+  echo -e "Error: Neither Shopify CLI deployment nor TOML file generation was executed."
+  echo -e "If deploying multiple stores, ensure deploy_list_json is set with deploy_template_toml."
+  echo -e "If deploying a single store, ensure shop_store is set with shop_theme_token."
+  exit 
 fi

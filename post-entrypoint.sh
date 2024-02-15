@@ -27,10 +27,10 @@ set -eou pipefail
 
 export SHOPIFY_CLI_TTY=0
 export SHOPIFY_CLI_STACKTRACE=1
-export SHOPIFY_FLAG_STORE="$SHOP_STORE"
-export SHOPIFY_CLI_THEME_TOKEN="$SHOP_THEME_TOKEN"
 
 if [[ $INPUT_CLEANUP_THEME = 'true' ]]; then
+  export SHOPIFY_FLAG_STORE="$SHOP_STORE"
+  export SHOPIFY_CLI_THEME_TOKEN="$SHOP_THEME_TOKEN"
   echo "Cleaning development theme..."
   shopify theme delete -f -d
 fi

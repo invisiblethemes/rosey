@@ -6,16 +6,22 @@ description: 'Deploys theme to a shopify store'
 inputs:
   theme_token:
     description: 'Shopify theme access token'
-    required: true
+    required: false
   store:
     description: '<domain>.myshopify.com URL'
-    required: true
+    required: false
   theme_root:
     description: 'The root folder for the theme assets that will be uploaded'
     required: false
     default: '.'
   theme_command:
     description: 'Optional command to run instead of `push --development`'
+    required: true
+  deploy_list_json:
+    description: 'JSON string containing stores, themes, and GitHub secrets for deploy passwords'
+    required: false
+  deploy_template_toml:
+    description: 'TOML template string for deployment environments'
     required: false
   cleanup_theme:
     description: 'Whether or not to delete the development theme in a post-action script'
