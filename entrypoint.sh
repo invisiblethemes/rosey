@@ -71,56 +71,57 @@ enabled = false
 YAML
 
 
+exp_backoff() {
+  local command="$1"
+  local max_attempts="${2:-5}"
+  local attempt=0
+  local delay=1
+
+  while [ "$attempt" -lt "$max_attempts" ]; do
+    local_log="$(mktemp)"
+    set -o pipefail
+
+    # Run the command and store the output
+    eval "$command" | tee $local_log
+
+    local exit_code=$?
+
+    # Check if the command contains anything about rate limiting
+    if [ "$exit_code" -eq 1 ] && (cat "$local_log" | grep -q "429" || cat "$local_log" | grep -q "Reduce request rates"); then
+      # If there's a rate limit error, increment the attempt counter and apply the delay
+      attempt=$((attempt + 1))
+      echo "Attempt $attempt of $max_attempts failed due to rate limit, retrying in $delay seconds..."
+      sleep $delay
+
+      # Calculate the next delay, doubling it each time
+      delay=$((delay * 2))
+    elif [ "$exit_code" -eq 1 ]; then
+      # If the exit code is 1 (but not due to rate limiting), exit with error
+      echo "not 429 error"
+      exit 1
+    else
+      # If the exit code is not 1, break
+      echo "success"
+      break
+    fi
+  done
+
+  if [ "$attempt" -eq "$max_attempts" ]; then
+    echo "Maximum attempts reached, aborting." >&2
+    exit 1
+  fi
+}
+
+export SHOPIFY_CLI_TTY=0
+export SHOPIFY_CLI_STACKTRACE=1
+
 ####################################################################
 # Shopify single store CLI Deployment
 
 # Only proceed with the following if STORE and THEME_TOKEN are provided
 if [[ -n "$SHOP_STORE" && -n "$SHOP_THEME_TOKEN" ]]; then
-  export SHOPIFY_CLI_TTY=0
-  export SHOPIFY_CLI_STACKTRACE=1
   export SHOPIFY_FLAG_STORE="$SHOP_STORE"
   export SHOPIFY_CLI_THEME_TOKEN="$SHOP_THEME_TOKEN"
-
-  exp_backoff() {
-    local command="$1"
-    local max_attempts="${2:-5}"
-    local attempt=0
-    local delay=1
-
-    while [ "$attempt" -lt "$max_attempts" ]; do
-      local_log="$(mktemp)"
-      set -o pipefail
-
-      # Run the command and store the output
-      eval "$command" | tee $local_log
-
-      local exit_code=$?
-
-      # Check if the command contains anything about rate limiting
-      if [ "$exit_code" -eq 1 ] && (cat "$local_log" | grep -q "429" || cat "$local_log" | grep -q "Reduce request rates"); then
-        # If there's a rate limit error, increment the attempt counter and apply the delay
-        attempt=$((attempt + 1))
-        echo "Attempt $attempt of $max_attempts failed due to rate limit, retrying in $delay seconds..."
-        sleep $delay
-
-        # Calculate the next delay, doubling it each time
-        delay=$((delay * 2))
-      elif [ "$exit_code" -eq 1 ]; then
-        # If the exit code is 1 (but not due to rate limiting), exit with error
-        echo "not 429 error"
-        exit 1
-      else
-        # If the exit code is not 1, break
-        echo "success"
-        break
-      fi
-    done
-
-    if [ "$attempt" -eq "$max_attempts" ]; then
-      echo "Maximum attempts reached, aborting." >&2
-      exit 1
-    fi
-  }
 
   theme_root="${THEME_ROOT:-.}"
   theme_command="${THEME_COMMAND:-"push --development --json --path=$theme_root"}"
@@ -218,6 +219,25 @@ if [[ -n "$DEPLOY_LIST_JSON" && -n "$DEPLOY_TEMPLATE_TOML" ]]; then
         
         deployment_executed=true
     done
+
+  # Run theme_command, assume nothing about command structure
+  theme_root="${THEME_ROOT:-.}"
+  theme_push_log="$(mktemp)"
+  command="$THEME_COMMAND | tee $theme_push_log"
+
+  log $command
+
+  # Run command with exponential backoff in case we get rate-limited
+  exp_backoff "$command"
+
+  if [ $? -eq 1 ]; then
+    echo "Error running theme command!" >&2
+    exit 1
+  fi
+
+  # Extract JSON from shopify CLI output
+  log $theme_push_log
+
 else
     echo "deploy_list_json or deploy_template_toml is not set, no toml created"
 fi

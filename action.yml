@@ -16,7 +16,7 @@ inputs:
     default: '.'
   theme_command:
     description: 'Optional command to run instead of `push --development`'
-    required: false
+    required: true
   deploy_list_json:
     description: 'JSON string containing stores, themes, and GitHub secrets for deploy passwords'
     required: false
